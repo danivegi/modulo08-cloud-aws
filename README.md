@@ -1,75 +1,19 @@
-# React + TypeScript + Vite
+# Módulo 8 - Cloud: AWS + Docker Hub
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+App Vite + React desplegada en AWS EC2 a partir de una imagen publicada en Docker Hub.
 
-Currently, two official plugins are available:
+## Enlaces
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **App desplegada:** http://13.60.205.126
+- **Imagen en Docker Hub:** https://hub.docker.com/r/danivegi/modulo08-cloud-aws
 
-## React Compiler
+## Cómo funciona
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Cada merge a `main` ejecuta el workflow `.github/workflows/deploy.yml`, que construye la imagen con el `Dockerfile` (multi-stage: build con Node y servido con Nginx) y la publica en Docker Hub con los tags `latest` y el hash del commit.
+2. En AWS hay una instancia EC2 (Amazon Linux 2023, t3.micro, región eu-north-1) con el puerto 80 abierto en su grupo de seguridad.
+3. Al arrancar, la instancia ejecuta el script `aws/user-data.sh`, que instala Docker, descarga la imagen de Docker Hub y la ejecuta en el puerto 80.
 
-## Expanding the ESLint configuration
+## Credenciales del workflow
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+- `DOCKERHUB_USERNAME`: variable del repositorio.
+- `DOCKERHUB_TOKEN`: secret del repositorio (token de acceso de Docker Hub).
